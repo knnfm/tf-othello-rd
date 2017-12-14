@@ -16,36 +16,50 @@ class Othello:
     def __init__(self):
         pass
 
-    def learning_play(self):
-        board = Board()
-        player1 = computer = Computer(BLACK, "PC")
-        player1 = computer = AI(BLACK, "あなた")
 
-        turn = 0
-        hand1 = hand2 = None
-        while board.is_playable() and not hand1 == hand2 == "pass":
-            turn += 1
-            print("TURN = %s" % turn)
+# 機械学習用のAPIたち
+    # 学習用に1手1手プレイしていくスタイルの初期化
+    def learning_start_play(self):
+        self.board = Board()
+        self.player1 = computer = Computer(BLACK, "PC")
+        self.player2 = user = AI(WHITE, "AI")
 
-            print(board)
-            hand1 = player1.play(board)
-            print("%sの手: %s" % (player1.name, hand1))
+        self.turn = 0
+        self.hand1 = None
+        self.hand2 = None
 
-            print(board)
-            hand2 = player2.play(board)
-            print("%sの手: %s" % (player2.name, hand2))
+    # 学習用に1手1手プレイしていくスタイルの
+    def learning_play(self, x, y):
+        result = self.player2.play(self.board, x, y)
+        if result == "ok":
+            print(self.board)
+            hand2 = "(" + str(x) + ", " + str(y) + ")"
+            print("%sの手: %s" % (self.player2.name, hand2))
+        return result
 
-        self.show_result(board)
+    def learning_next(self):
+        self.turn += 1
+        print("TURN = %s" % self.turn)
 
-        end_time = time.time()
-        print("試合時間:" + str(end_time - start_time))
+        print(self.board)
+        hand1 = self.player1.play(self.board)
+        print("%sの手: %s" % (self.player1.name, hand1))
+
+    def learning_observe(self):
+        return self.board, self.reward, self.is_playable()
+
+    def is_playable(self):
+        return self.board.is_playable() and not self.hand1 == self.hand2 == "pass"
+
+
+# ---------------------------------------------
 
 
     def play(self):
         start_time = time.time()
         board = Board()
         player1 = computer = Computer(BLACK, "PC")
-        player2 = user = User(BLACK, "あなた")
+        player2 = user = User(WHITE, "あなた")
         #player1 = user = User(BLACK, "あなた")
         #player2 = computer = Computer(WHITE, "PC")
 
@@ -175,21 +189,19 @@ class AI:
         self.stone = stone
         self.name = name
 
-    def play(self, board):
+    def play(self, board, x, y):
         availables = board.availables(self.stone)
         if not availables:
+            print("not available")
             return "pass"
 
         # Catchballに盤面を渡して考えさせる
-        while True:
-            print("打てる場所(Y, X): " + str(availables))
-            line = self.catch_ball.obserbe()
-            x, y = map(int, line.split())
-            if (x, y) in availables:
-                board.put(x, y, self.stone)
-                return x, y
-            else:
-                print("そこには置けません")
+        print("打てる場所(Y, X): " + str(availables))
+        if (x, y) in availables:
+            board.put(x, y, self.stone)
+            return "ok"
+        else:
+            return "ng"
 
 
 class Computer(Player):
