@@ -35,16 +35,16 @@ class Othello:
     def learning_play(self, x, y):
         result = self.player1.play(self.board, x, y)
         if result == "ok":
-            print(self.board)
+            # print(self.board)
             hand2 = "(" + str(x) + ", " + str(y) + ")"
             print("%sの手: %s" % (self.player1.name, hand2))
         return result
 
     def learning_next(self):
         self.turn += 1
-        print("TURN = %s" % self.turn)
+        # print("TURN = %s" % self.turn)
 
-        print(self.board)
+        # print(self.board)
         hand1 = self.player2.play(self.board)
         print("%sの手: %s" % (self.player2.name, hand1))
 
@@ -127,6 +127,7 @@ class Board:
         self.square = square
 
     def __str__(self):
+        # return ""
         return '\n'.join(''.join(row) for row in self.square)
 
     def __getitem__(self, x):
@@ -201,7 +202,7 @@ class AI:
             return "pass"
 
         # Catchballに盤面を渡して考えさせる
-        print("打てる場所(Y, X): " + str(availables))
+        # print("打てる場所(Y, X): " + str(availables))
         if (x, y) in availables:
             board.put(x, y, self.stone)
             return "ok"
@@ -213,16 +214,16 @@ class Computer(Player):
 
     def think(self, board, availables):
         starttime = time.time()
-        print(availables)
+        # print(availables)
         print("thinking……")
         own = self.stone
         opponent = OPPONENT[own]
         evaluations, x, y = AlphaBeta(board, availables, own, opponent)
-        print(evaluations)
+        # print(evaluations)
         board.put(x, y, self.stone)
         endtime = time.time()
         interval = endtime - starttime
-        print("%s秒" % interval)  # 計算時間を表示
+        # print("%s秒" % interval)  # 計算時間を表示
         return x, y
 
 
@@ -230,7 +231,7 @@ class User(Player):
 
     def think(self, board, availables):
         while True:
-            print("打てる場所(Y, X): " + str(availables))  # 内部のx,yと表示のX,Yが逆なので注意
+            # print("打てる場所(Y, X): " + str(availables))  # 内部のx,yと表示のX,Yが逆なので注意
             try:
                 line = input("Y X or quit: ")
                 print("line is " + line)

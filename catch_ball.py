@@ -32,8 +32,8 @@ class CatchBall:
         return np.array(board, dtype=np.int32)
 
     # 評価を取得
-    def get_reward(self):
-        return 0
+    def get_stone_reward(self):
+        return self.othello.board.count("●") - self.othello.board.count("○")
 
     # 盤面生成
     def set_new_game(self):
@@ -61,3 +61,6 @@ class CatchBall:
 
     def is_playable(self):
         return self.othello.is_playable()
+
+    def print_board(self):
+        print(self.othello.board)

@@ -6,7 +6,6 @@ import numpy as np
 from catch_ball import CatchBall
 from dqn_agent import DQNAgent
 
-
 if __name__ == "__main__":
     # 学習に回す回数
     n_epochs = 10000
@@ -15,7 +14,7 @@ if __name__ == "__main__":
     agent = DQNAgent(env.enable_actions, env.name)
 
     # for e in range(n_epochs):
-# るーぷ開始地点
+    # るーぷ開始地点
     is_abort = False
     frame = 0
     loss = 0.0
@@ -24,20 +23,18 @@ if __name__ == "__main__":
     env.set_new_game()
     state_t_1 = env.observe()
 
-
-# 1ゲーム内の処理開始地点
+    # 1ゲーム内の処理開始地点
     while env.is_playable() is True and is_abort is False:
+        print "*********************************************************************************"
+
         state_t = copy.deepcopy(state_t_1)
-        print state_t
 
         # 自分の手がOKになるまでループ（置けないところに置く可能性がある為）
         while is_abort is False:
             # 手を選ばせる。盤面情報と手のブレ率（random)を与える
-            if "Test" is "Test":
-                hand_result = env.random_play()
-            else:
-                action_t = agent.select_action(state_t, agent.exploration)
-                hand_result = env.learning_play(action_t)
+            # hand_result = env.random_play()
+            action_t = agent.select_action(state_t, agent.exploration)
+            hand_result = env.learning_play(action_t)
 
             if hand_result == "ok":
                 break
@@ -46,3 +43,6 @@ if __name__ == "__main__":
         env.learning_next()
 
         state_t_1 = env.observe()
+
+        env.print_board()
+        print "Result " + str(env.get_stone_reward())
