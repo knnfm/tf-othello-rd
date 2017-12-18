@@ -14,27 +14,30 @@ import copy
 
 class Othello:
     def __init__(self):
-        pass
+        self.board = None
+        self.player1 = None
+        self.player2 = None
+        self.turn = 0
+        self.hand1 = None
+        self.hand2 = None
 
-
-# 機械学習用のAPIたち
+    # 機械学習用のAPIたち
     # 学習用に1手1手プレイしていくスタイルの初期化
     def learning_start_play(self):
         self.board = Board()
-        self.player1 = computer = Computer(BLACK, "PC")
-        self.player2 = user = AI(WHITE, "AI")
-
+        self.player1 = AI(BLACK, "AI")
+        self.player2 = Computer(WHITE, "PC")
         self.turn = 0
         self.hand1 = None
         self.hand2 = None
 
     # 学習用に1手1手プレイしていくスタイルの
     def learning_play(self, x, y):
-        result = self.player2.play(self.board, x, y)
+        result = self.player1.play(self.board, x, y)
         if result == "ok":
             print(self.board)
             hand2 = "(" + str(x) + ", " + str(y) + ")"
-            print("%sの手: %s" % (self.player2.name, hand2))
+            print("%sの手: %s" % (self.player1.name, hand2))
         return result
 
     def learning_next(self):
@@ -42,8 +45,8 @@ class Othello:
         print("TURN = %s" % self.turn)
 
         print(self.board)
-        hand1 = self.player1.play(self.board)
-        print("%sの手: %s" % (self.player1.name, hand1))
+        hand1 = self.player2.play(self.board)
+        print("%sの手: %s" % (self.player2.name, hand1))
 
     def learning_observe(self):
         return self.board, self.reward, self.is_playable()
@@ -51,17 +54,18 @@ class Othello:
     def is_playable(self):
         return self.board.is_playable() and not self.hand1 == self.hand2 == "pass"
 
+    def get_board_square(self):
+        return self.board.square
 
-# ---------------------------------------------
-
+    # ---------------------------------------------
 
     def play(self):
         start_time = time.time()
         board = Board()
         player1 = computer = Computer(BLACK, "PC")
         player2 = user = User(WHITE, "あなた")
-        #player1 = user = User(BLACK, "あなた")
-        #player2 = computer = Computer(WHITE, "PC")
+        # player1 = user = User(BLACK, "あなた")
+        # player2 = computer = Computer(WHITE, "PC")
 
         turn = 0
         hand1 = hand2 = None
@@ -101,6 +105,7 @@ class Othello:
 class Stone(str):
     pass
 
+
 BLACK = Stone("●")
 WHITE = Stone("○")
 BLANK = Stone("×")
@@ -110,7 +115,7 @@ OPPONENT = {BLACK: WHITE, WHITE: BLACK}
 class Board:
     SIZE = 8
     DIRECTIONS_XY = ((-1, -1), (+0, -1), (+1, -1),
-                     (-1, +0),           (+1, +0),
+                     (-1, +0), (+1, +0),
                      (-1, +1), (+0, +1), (+1, +1))
 
     def __init__(self):
@@ -132,14 +137,14 @@ class Board:
                    for row in self.square
                    for col in row)
 
-    def count(self, stone):         # 石が何個あるかを返す関数
-        return sum(col == stone     # True is 1, False is 0
+    def count(self, stone):  # 石が何個あるかを返す関数
+        return sum(col == stone  # True is 1, False is 0
                    for row in self.square
                    for col in row)
 
-    def put(self, x, y, stone):     # y,xは置く石の座標、stoneにはWHITEかBLACKが入る。
+    def put(self, x, y, stone):  # y,xは置く石の座標、stoneにはWHITEかBLACKが入る。
         self[x][y] = stone
-        # reverse
+
         for dx, dy in Board.DIRECTIONS_XY:
             n = self.count_reversible(x, y, dx, dy, stone)
             for i in range(1, n + 1):
@@ -171,7 +176,7 @@ class Board:
                 if self.is_available(x, y, stone)]
 
 
-class Player:   # abstract class
+class Player:  # abstract class
 
     def __init__(self, stone, name):
         self.stone = stone
@@ -225,7 +230,7 @@ class User(Player):
 
     def think(self, board, availables):
         while True:
-            print("打てる場所(Y, X): " + str(availables))   # 内部のx,yと表示のX,Yが逆なので注意
+            print("打てる場所(Y, X): " + str(availables))  # 内部のx,yと表示のX,Yが逆なので注意
             try:
                 line = input("Y X or quit: ")
                 print("line is " + line)
@@ -247,7 +252,6 @@ class User(Player):
                 print("意味不明")
 
 
-
 ## --------------------------------------------
 ## 以下、テスト用のコンピュータ思考
 ## --------------------------------------------
@@ -258,9 +262,11 @@ def AlphaBeta(board, availables, own, opponent):  # AlphaBeta法で探索する
     x, y = availables[maximum_evaluation_index]
     return evaluations, x, y
 
+
 def AlphaBeta_evaluate1(board, availables, own, opponent):
     def pruning2(max_evaluations3):
         return len(evaluations1) > 0 and max(evaluations1) >= max_evaluations3
+
     evaluations1 = []
     for x, y in availables:
         board1 = copy.deepcopy(board)
@@ -270,9 +276,11 @@ def AlphaBeta_evaluate1(board, availables, own, opponent):
             evaluations1 += [min(evaluations2)]
     return evaluations1
 
+
 def AlphaBeta_evaluate2(board, own, opponent, pruning):
     def pruning3(min_evaluations4):
         return len(evaluations2) > 0 and min(evaluations2) <= min_evaluations4
+
     evaluations2 = []
     for x, y in board.availables(opponent):
         board2 = copy.deepcopy(board)
@@ -285,9 +293,11 @@ def AlphaBeta_evaluate2(board, own, opponent, pruning):
                 break
     return evaluations2
 
+
 def AlphaBeta_evaluate3(board, own, opponent, pruning):
     def pruning4(max_evaluations5):
         return len(evaluations3) > 0 and max(evaluations3) >= max_evaluations5
+
     evaluations3 = []
     for x, y in board.availables(own):
         board3 = copy.deepcopy(board)
@@ -300,9 +310,11 @@ def AlphaBeta_evaluate3(board, own, opponent, pruning):
                 break
     return evaluations3
 
+
 def AlphaBeta_evaluate4(board, own, opponent, pruning):
     def pruning5(evaluation5):
         return len(evaluations4) > 0 and min(evaluations4) <= evaluation5
+
     evaluations4 = []
     for x, y in board.availables(opponent):
         board4 = copy.deepcopy(board)
@@ -314,6 +326,7 @@ def AlphaBeta_evaluate4(board, own, opponent, pruning):
             if pruning(max_evaluation5):
                 break
     return evaluations4
+
 
 def AlphaBeta_evaluate5(board, own, opponent, pruning):
     evaluations5 = []
@@ -331,14 +344,15 @@ def AlphaBeta_evaluate5(board, own, opponent, pruning):
 
 # pp = [45,-11,-16,4,-1,2,-1,-3,-1,0]
 EVALUATION_BOARD = (  # どのマスに石があったら何点かを表す評価ボード
-    ( 45, -11,  4, -1, -1,  4, -11,  45),
+    (45, -11, 4, -1, -1, 4, -11, 45),
     (-11, -16, -1, -3, -3, -1, -16, -11),
-    (  4,  -1,  2, -1, -1,  2,  -1,   4),
-    ( -1,  -3, -1,  0,  0, -1,  -3,  -1),
-    ( -1,  -3, -1,  0,  0, -1,  -3,  -1),
-    (  4,  -1,  2, -1, -1,  2,  -1,   4),
+    (4, -1, 2, -1, -1, 2, -1, 4),
+    (-1, -3, -1, 0, 0, -1, -3, -1),
+    (-1, -3, -1, 0, 0, -1, -3, -1),
+    (4, -1, 2, -1, -1, 2, -1, 4),
     (-11, -16, -1, -3, -3, -1, -16, -11),
-    ( 45, -11,  4, -1, -1,  4, -11,  45))
+    (45, -11, 4, -1, -1, 4, -11, 45))
+
 
 def evaluate(board, stone):  # 任意の盤面のどちらかの石の評価値を計算する
     bp = 0
@@ -360,6 +374,7 @@ def evaluate(board, stone):  # 任意の盤面のどちらかの石の評価値�
 
     evaluation = bp * 2 + fs * 5 + cn * 1
     return evaluation
+
 
 def confirm_stone(board, stone):  # 確定石の数を数える
     forward = range(0, board.SIZE)

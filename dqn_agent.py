@@ -16,6 +16,8 @@ class DQNAgent:
 
     def __init__(self, enable_actions, environment_name):
         # parameters
+        self.board_side_size = 8
+        self.board_max_size = self.board_side_size ** 2
         self.name = os.path.splitext(os.path.basename(__file__))[0]
         self.environment_name = environment_name
         self.enable_actions = enable_actions
@@ -40,19 +42,19 @@ class DQNAgent:
             tf.gfile.DeleteRecursively(log_dir)
         tf.gfile.MakeDirs(log_dir)
 
-        # input layer (9 x 9)
-        self.x = tf.placeholder(tf.float32, [None, 9, 9])
+        # input layer
+        self.x = tf.placeholder(tf.float32, [None, self.board_side_size, self.board_side_size])
 
-        # flatten (81)
-        x_flat = tf.reshape(self.x, [-1, 81])
+        # flatten
+        x_flat = tf.reshape(self.x, [-1, self.board_max_size])
 
         # fully connected layer (32)
-        W_fc1 = tf.Variable(tf.truncated_normal([81, 81], stddev=0.01))
-        b_fc1 = tf.Variable(tf.zeros([81]))
+        W_fc1 = tf.Variable(tf.truncated_normal([self.board_max_size, self.board_max_size], stddev=0.01))
+        b_fc1 = tf.Variable(tf.zeros([self.board_max_size]))
         h_fc1 = tf.nn.relu(tf.matmul(x_flat, W_fc1) + b_fc1)
 
         # output layer (n_actions)
-        W_out = tf.Variable(tf.truncated_normal([81, self.n_actions], stddev=0.01))
+        W_out = tf.Variable(tf.truncated_normal([self.board_max_size, self.n_actions], stddev=0.01))
         b_out = tf.Variable(tf.zeros([self.n_actions]))
         self.y = tf.matmul(h_fc1, W_out) + b_out
 
@@ -75,7 +77,7 @@ class DQNAgent:
         tf.summary.scalar("win", self.win_t)
         tf.summary.scalar("loss", self.current_loss_t)
         self.summary_merged = tf.summary.merge_all()
-        self.summary_writer = tf.summary.FileWriter(log_dir , self.sess.graph)
+        self.summary_writer = tf.summary.FileWriter(log_dir, self.sess.graph)
 
         self.sess.run(tf.global_variables_initializer())
 
@@ -84,9 +86,9 @@ class DQNAgent:
         return self.sess.run(self.y, feed_dict={self.x: [state]})[0]
 
     def select_action(self, state, epsilon):
-       if np.random.rand() <= epsilon:
+        if np.random.rand() <= epsilon:
             return np.random.choice(self.enable_actions)
-       else:
+        else:
             return self.enable_actions[np.argmax(self.Q_values(state))]
 
     def store_experience(self, state, action, reward, state_1, terminal):
@@ -119,9 +121,9 @@ class DQNAgent:
 
         self.sess.run(self.training, feed_dict={self.x: state_minibatch, self.y_: y_minibatch})
         # if terminal:
-            # print state_minibatch[len(state_minibatch)-1]
-            # print y_minibatch[len(y_minibatch)-1]
-            # print "-----------------------------"
+        # print state_minibatch[len(state_minibatch)-1]
+        # print y_minibatch[len(y_minibatch)-1]
+        # print "-----------------------------"
 
         self.current_loss = self.sess.run(self.loss, feed_dict={self.x: state_minibatch, self.y_: y_minibatch})
 
