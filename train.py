@@ -8,41 +8,72 @@ from dqn_agent import DQNAgent
 
 if __name__ == "__main__":
     # 学習に回す回数
-    n_epochs = 10000
+    n_epochs = 10
 
     env = CatchBall()
     agent = DQNAgent(env.enable_actions, env.name)
+    total_result_log = ""
 
-    # for e in range(n_epochs):
-    # るーぷ開始地点
-    is_abort = False
-    frame = 0
-    loss = 0.0
-    Q_max = 0.0
-    env.reset_board_status()
-    env.set_new_game()
-    state_t_1 = env.observe()
+    for e in range(n_epochs):
+        # るーぷ開始地点
+        frame = 0
+        win = 0
+        loss = 0.0
+        Q_max = 0.0
+        env.reset_board_status()
+        env.set_new_game()
+        state_after = env.observe()
 
-    # 1ゲーム内の処理開始地点
-    while env.is_playable() is True and is_abort is False:
-        print "*********************************************************************************"
+        # 1ゲーム内の処理開始地点
+        while env.is_playable() is True:
+            # print "*********************************************************************************"
 
-        state_t = copy.deepcopy(state_t_1)
+            state_before = copy.deepcopy(state_after)
 
-        # 自分の手がOKになるまでループ（置けないところに置く可能性がある為）
-        while is_abort is False:
-            # 手を選ばせる。盤面情報と手のブレ率（random)を与える
-            # hand_result = env.random_play()
-            action_t = agent.select_action(state_t, agent.exploration)
-            hand_result = env.learning_play(action_t)
+            # 自分の手がOKになるまでループ（置けないところに置く可能性がある為）
+            while True is True:
+                env.is_available()
 
-            if hand_result == "ok":
-                break
+                # 手を選ばせる。盤面情報と手のブレ率（random)を与える
+                # hand_result = env.random_play()
+                action_t = agent.select_action(state_before, agent.exploration)
+                hand_result = env.learning_play(action_t)
 
-        # 相手の手を進める（基本的に相手が後攻）
-        env.learning_next()
+                if hand_result == "ok":
+                    break
+                elif hand_result == "ng":
+                    pass
+                elif hand_result == "pass":
+                    break
+                else:
+                    print "Hung up"
 
-        state_t_1 = env.observe()
+            # 相手の手を進める（基本的に相手が後攻）
+            env.learning_next()
 
-        env.print_board()
-        print "Result " + str(env.get_stone_reward())
+            # 1手毎の結果を処理する
+            if hand_result == "pass":
+                # print "pass"
+                pass
+            else:
+                state_after = env.observe()
+                reward_t = env.get_stone_reward()
+
+                agent.store_experience(state_before, action_t, reward_t, state_after, env.is_playable())
+                agent.experience_replay(e)
+                # for log
+                frame += 1
+                loss += agent.current_loss
+                Q_max += np.max(agent.Q_values(state_before))
+                if reward_t == 1:
+                    win += 1
+
+        # 結果を表示
+        # env.print_board()
+        env.show_result()
+
+        # print("EPOCH: {:03d}/{:03d} | WIN: {:03d} | LOSS: {:.4f} | Q_MAX: {:.4f}".format(e, n_epochs - 1, win, loss / frame, Q_max / frame))
+        total_result_log += "EPOCH: {:03d}/{:03d} | WIN: {:03d} | LOSS: {:.4f} | Q_MAX: {:.4f}".format(e, n_epochs - 1, win, loss / frame, Q_max / frame) + str("\n")
+
+    print total_result_log
+    agent.save_model()

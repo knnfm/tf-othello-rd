@@ -33,20 +33,20 @@ class Othello:
 
     # 学習用に1手1手プレイしていくスタイルの
     def learning_play(self, x, y):
-        result = self.player1.play(self.board, x, y)
-        if result == "ok":
+        self.hand1 = self.player1.play(self.board, x, y)
+        if self.hand1 == "ok":
             # print(self.board)
-            hand2 = "(" + str(x) + ", " + str(y) + ")"
-            print("%sの手: %s" % (self.player1.name, hand2))
-        return result
+            hand_str = "(" + str(x) + ", " + str(y) + ")"
+            # print("%sの手: %s" % (self.player1.name, hand_str))
+        return self.hand1
 
     def learning_next(self):
         self.turn += 1
         # print("TURN = %s" % self.turn)
 
         # print(self.board)
-        hand1 = self.player2.play(self.board)
-        print("%sの手: %s" % (self.player2.name, hand1))
+        self.hand2 = self.player2.play(self.board)
+        # print("%sの手: %s" % (self.player2.name, self.hand2))
 
     def learning_observe(self):
         return self.board, self.reward, self.is_playable()
@@ -89,17 +89,17 @@ class Othello:
     def show_result(self, board):
         print("------------------RESULT-------------------")  # 結果発表
         print(board)
-        computer_stones = board.count(computer.stone)
-        user_stones = board.count(user.stone)
-        print("Computer: %s" % computer_stones)
-        print("You: %s" % user_stones)
-        print()
+        user_stones = board.count(self.player1.stone)
+        computer_stones = board.count(self.player2.stone)
+        # print(str(user_stones) + " : " + str(computer_stones))
+        # print("Computer: %s" % computer_stones)
+        # print("You: %s" % user_stones)
         if computer_stones > user_stones:
-            print("YOU LOST!!!!!")
+            print("LOSE " + str(user_stones) + " : " + str(computer_stones))
         elif computer_stones < user_stones:
-            print("YOU WON!!!!!")
+            print("WINN " + str(user_stones) + " : " + str(computer_stones))
         else:
-            print("DRAW")
+            print("DRAW " + str(user_stones) + " : " + str(computer_stones))
 
 
 class Stone(str):
@@ -127,8 +127,18 @@ class Board:
         self.square = square
 
     def __str__(self):
-        # return ""
-        return '\n'.join(''.join(row) for row in self.square)
+        log = "\   0   1   2   3   4   5   6   7\n"
+
+        row_count = 0
+        for row in self.square:
+            log += str(row_count) + "   "
+            for column in row:
+                log += column + "   "
+            log += "\n"
+            log += "\n"
+            row_count += 1
+
+        return log
 
     def __getitem__(self, x):
         return self.square[x]
@@ -198,7 +208,6 @@ class AI:
     def play(self, board, x, y):
         availables = board.availables(self.stone)
         if not availables:
-            print("not available")
             return "pass"
 
         # Catchballに盤面を渡して考えさせる
@@ -215,7 +224,7 @@ class Computer(Player):
     def think(self, board, availables):
         starttime = time.time()
         # print(availables)
-        print("thinking……")
+        # print("thinking……")
         own = self.stone
         opponent = OPPONENT[own]
         evaluations, x, y = AlphaBeta(board, availables, own, opponent)
@@ -258,16 +267,25 @@ class User(Player):
 ## --------------------------------------------
 
 def AlphaBeta(board, availables, own, opponent):  # AlphaBeta法で探索する
-    evaluations = AlphaBeta_evaluate1(board, availables, own, opponent)
-    maximum_evaluation_index = evaluations.index(max(evaluations))
+    # evaluations = AlphaBeta_evaluate1(board, availables, own, opponent)
+    # if len(evaluations) == 0:
+    #     maximum_evaluation_index = availables.index(max(availables))
+    #     x, y = availables[maximum_evaluation_index]
+    #     return evaluations, x, y
+    # else:
+    #     maximum_evaluation_index = evaluations.index(max(evaluations))
+    #     x, y = availables[maximum_evaluation_index]
+    #     return evaluations, x, y
+    maximum_evaluation_index = availables.index(max(availables))
     x, y = availables[maximum_evaluation_index]
-    return evaluations, x, y
+    return [], x, y
 
 
 def AlphaBeta_evaluate1(board, availables, own, opponent):
     def pruning2(max_evaluations3):
         return len(evaluations1) > 0 and max(evaluations1) >= max_evaluations3
 
+    print "evalute1 " + str(availables)
     evaluations1 = []
     for x, y in availables:
         board1 = copy.deepcopy(board)
@@ -275,6 +293,7 @@ def AlphaBeta_evaluate1(board, availables, own, opponent):
         evaluations2 = AlphaBeta_evaluate2(board1, own, opponent, pruning2)
         if len(evaluations2) > 0:
             evaluations1 += [min(evaluations2)]
+    print "evaluations1 " + str(evaluations1)
     return evaluations1
 
 
@@ -292,6 +311,7 @@ def AlphaBeta_evaluate2(board, own, opponent, pruning):
             evaluations2 += [max_evaluations3]
             if pruning(max_evaluations3):
                 break
+    print "evaluations2 " + str(evaluations2)
     return evaluations2
 
 
@@ -309,6 +329,7 @@ def AlphaBeta_evaluate3(board, own, opponent, pruning):
             evaluations3 += [min_evaluations4]
             if pruning(min_evaluations4):
                 break
+    print "evaluations3 " + str(evaluations3)
     return evaluations3
 
 
@@ -326,6 +347,7 @@ def AlphaBeta_evaluate4(board, own, opponent, pruning):
             evaluations4 += [max_evaluation5]
             if pruning(max_evaluation5):
                 break
+    print "evaluations4 " + str(evaluations4)
     return evaluations4
 
 
@@ -340,6 +362,7 @@ def AlphaBeta_evaluate5(board, own, opponent, pruning):
         evaluations5 += [evaluation]
         if pruning(evaluation):
             break
+    print "evaluations5 " + str(evaluations5)
     return evaluations5
 
 

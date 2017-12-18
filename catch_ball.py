@@ -15,21 +15,30 @@ class CatchBall:
         self.othello = None
         self.reward = 0
         self.name = os.path.splitext(os.path.basename(__file__))[0]
-        self.enable_actions = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64)
+        self.enable_actions = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63)
 
     # 現在の盤面を取得
     def observe(self):
-        board = np.array([])
+        full_board = np.zeros((8, 8))
 
-        for a in self.othello.get_board_square():
-            if a is "●":  # 黒
-                board = np.append(board, 1)
-            elif a is "○":  # 白
-                board = np.append(board, -1)
-            else:
-                board = np.append(board, 0)
+        row_count = 0
+        for row in self.othello.get_board_square():
+            log = ""
 
-        return np.array(board, dtype=np.int32)
+            column_count = 0
+            for column in row:
+                if column == "●":  # 黒
+                    full_board[row_count][column_count] = 1
+                elif column == "○":  # 白
+                    full_board[row_count][column_count] = -1
+
+                log += column
+                column_count += 1
+
+            row_count += 1
+            # print log
+
+        return np.array(full_board, dtype=np.int32)
 
     # 評価を取得
     def get_stone_reward(self):
@@ -51,8 +60,8 @@ class CatchBall:
     def learning_play(self, action):
         self.reward = 0
 
-        x = action % 7
-        y = action / 7
+        x = action % 8
+        y = action / 8
         return self.othello.learning_play(x, y)
 
     # 盤上を見ずにランダムに置く
@@ -62,5 +71,16 @@ class CatchBall:
     def is_playable(self):
         return self.othello.is_playable()
 
+    def is_available(self):
+        availables = self.othello.board.availables("●")
+        # print "is_available : " + str(availables)
+        if not availables:
+            return False
+        else:
+            return True
+
     def print_board(self):
         print(self.othello.board)
+
+    def show_result(self):
+        self.othello.show_result(self.othello.board)

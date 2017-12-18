@@ -83,6 +83,8 @@ class DQNAgent:
 
     def Q_values(self, state):
         # Q(state, action) of all actions
+        # print state
+
         return self.sess.run(self.y, feed_dict={self.x: [state]})[0]
 
     def select_action(self, state, epsilon):
