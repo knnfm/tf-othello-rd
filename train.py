@@ -24,12 +24,15 @@ if __name__ == "__main__":
 
     is_abort = False
 
+
     while env.is_playable() is True and is_abort is False:
+        # 相手の手を進める
         env.learning_next()
-        hand_result = ""
-        while hand_result != "ok" and is_abort is False:
+
+        # 自分の手がOKになるまでループ（置けないところに置く可能性がある為）
+        # hand_result = ""
+        while is_abort is False:
             hand_result = env.learning_play()
-            if hand_result == "pass":
-                print "end"
-                is_abort = True
+            if hand_result == "ok":
+                break
 
