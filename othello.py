@@ -11,6 +11,7 @@ import time
 import random
 import copy
 
+from debug_log import DebugLog
 
 class Othello:
     def __init__(self):
@@ -20,6 +21,44 @@ class Othello:
         self.turn = 0
         self.hand1 = None
         self.hand2 = None
+        self.log = DebugLog()
+
+    # ---------------------------------------------------------
+    # 学習モデルと対戦のオセロ　-----------------------------------
+    # ---------------------------------------------------------
+
+    # 機械学習用のAPIたち
+    # 学習用に1手1手プレイしていくスタイルの初期化
+    def test_start_play(self):
+        self.board = Board()
+        self.player1 = User(BLACK, "PC")
+        self.player2 = AI(WHITE, "AI")
+        self.turn = 0
+        self.hand1 = None
+        self.hand2 = None
+
+    def test_player_play(self):
+        self.hand1 = self.player1.play(self.board)
+        if self.hand1 == "ok":
+            self.log.verbose(self.board)
+            hand_str = "(" + str(x) + ", " + str(y) + ")"
+            self.log.verbose("%sの手: %s" % (self.player1.name, hand_str))
+        return self.hand1
+
+    def test_ai_play(self, x, y):
+        DebugLog.verbose(str(x) + ":" + str(y))
+        self.hand1 = self.player2.play(self.board, x, y)
+        if self.hand1 == "ok":
+            self.log.verbose(self.board)
+            hand_str = "(" + str(x) + ", " + str(y) + ")"
+            self.log.verbose("%sの手: %s" % (self.player1.name, hand_str))
+        return self.hand1
+
+
+    # ---------------------------------------------------------
+    # 学習用のオセロ　---------------------------------------------
+    # ---------------------------------------------------------
+
 
     # 機械学習用のAPIたち
     # 学習用に1手1手プレイしていくスタイルの初期化
@@ -35,9 +74,9 @@ class Othello:
     def learning_play(self, x, y):
         self.hand1 = self.player1.play(self.board, x, y)
         if self.hand1 == "ok":
-            # print(self.board)
+            self.log.verbose(self.board)
             hand_str = "(" + str(x) + ", " + str(y) + ")"
-            # print("%sの手: %s" % (self.player1.name, hand_str))
+            self.log.verbose("%sの手: %s" % (self.player1.name, hand_str))
         return self.hand1
 
     def learning_next(self):
@@ -57,7 +96,9 @@ class Othello:
     def get_board_square(self):
         return self.board.square
 
-    # ---------------------------------------------
+    # ---------------------------------------------------------
+    # 通常のオセロ　---------------------------------------------
+    # ---------------------------------------------------------
 
     def play(self):
         start_time = time.time()
@@ -87,8 +128,8 @@ class Othello:
         print("試合時間:" + str(end_time - start_time))
 
     def show_result(self, board):
-        print("------------------RESULT-------------------")  # 結果発表
-        print(board)
+        # print("------------------RESULT-------------------")  # 結果発表
+        # print(board)
         user_stones = board.count(self.player1.stone)
         computer_stones = board.count(self.player2.stone)
         # print(str(user_stones) + " : " + str(computer_stones))
@@ -127,14 +168,13 @@ class Board:
         self.square = square
 
     def __str__(self):
-        log = "\   0   1   2   3   4   5   6   7\n"
+        log = "\ 0 1 2 3 4 5 6 7\n"
 
         row_count = 0
         for row in self.square:
-            log += str(row_count) + "   "
+            log += str(row_count) + " "
             for column in row:
-                log += column + "   "
-            log += "\n"
+                log += column + " "
             log += "\n"
             row_count += 1
 
@@ -211,7 +251,7 @@ class AI:
             return "pass"
 
         # Catchballに盤面を渡して考えさせる
-        # print("打てる場所(Y, X): " + str(availables))
+        DebugLog.info("打てる場所(Y, X): " + str(availables))
         if (x, y) in availables:
             board.put(x, y, self.stone)
             return "ok"
@@ -223,7 +263,7 @@ class Computer(Player):
 
     def think(self, board, availables):
         starttime = time.time()
-        # print(availables)
+        DebugLog.info(availables)
         # print("thinking……")
         own = self.stone
         opponent = OPPONENT[own]
@@ -237,11 +277,11 @@ class Computer(Player):
 
 
 class User(Player):
-
     def think(self, board, availables):
         while True:
-            # print("打てる場所(Y, X): " + str(availables))  # 内部のx,yと表示のX,Yが逆なので注意
+            DebugLog.info("打てる場所(Y, X): " + str(availables))  # 内部のx,yと表示のX,Yが逆なので注意
             try:
+                print("eq:\"2 3\"")
                 line = input("Y X or quit: ")
                 print("line is " + line)
             except:

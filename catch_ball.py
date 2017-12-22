@@ -44,14 +44,28 @@ class CatchBall:
     def get_stone_reward(self):
         return self.othello.board.count("●") - self.othello.board.count("○")
 
-    # 盤面生成
-    def set_new_game(self):
-        self.othello = Othello()
-        self.othello.learning_start_play()
-
     # 状態のリセット
     def reset_board_status(self):
         self.reward = 0
+
+
+    # 盤面生成(テストプレイ用)
+    def set_test_game(self):
+        self.othello = Othello()
+        self.othello.test_start_play()
+
+    def test_player_play(self):
+        self.othello.test_player_play()
+
+    def test_ai_play(self, action):
+        x = action % 8
+        y = action / 8
+        return self.othello.test_ai_play(x, y)
+
+    # 盤面生成(学習用)
+    def set_new_game(self):
+        self.othello = Othello()
+        self.othello.learning_start_play()
 
     def learning_next(self):
         self.othello.learning_next()
@@ -63,6 +77,9 @@ class CatchBall:
         x = action % 8
         y = action / 8
         return self.othello.learning_play(x, y)
+
+
+
 
     # 盤上を見ずにランダムに置く
     def random_play(self):

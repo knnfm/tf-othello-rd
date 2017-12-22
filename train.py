@@ -8,7 +8,7 @@ from dqn_agent import DQNAgent
 
 if __name__ == "__main__":
     # 学習に回す回数
-    n_epochs = 10
+    n_epochs = 1000
 
     env = CatchBall()
     agent = DQNAgent(env.enable_actions, env.name)
