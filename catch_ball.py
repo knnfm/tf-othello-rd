@@ -23,8 +23,6 @@ class CatchBall:
 
         row_count = 0
         for row in self.othello.get_board_square():
-            log = ""
-
             column_count = 0
             for column in row:
                 if column == "●":  # 黒
@@ -32,11 +30,40 @@ class CatchBall:
                 elif column == "○":  # 白
                     full_board[row_count][column_count] = -1
 
-                log += column
+                column_count += 1
+
+            row_count += 1
+        return np.array(full_board, dtype=np.int32)
+
+
+    def observe_ng(self, action):
+        x = int(action % 8)
+        y = int(action / 8)
+        full_board = np.zeros((8, 8))
+
+        row_count = 0
+        for row in self.othello.get_board_square():
+            log = ""
+
+            column_count = 0
+            for column in row:
+                if column == "●":  # 黒
+                    full_board[row_count][column_count] = 1
+                    log += "●"
+                elif column == "○":  # 白
+                    full_board[row_count][column_count] = -1
+                    log += "○"
+                elif column_count == y and row_count == x:
+                    full_board[row_count][column_count] = -1
+                    log += "○"
+                else:
+                    log += "×"
+
                 column_count += 1
 
             row_count += 1
             # print log
+        
 
         return np.array(full_board, dtype=np.int32)
 
@@ -48,7 +75,7 @@ class CatchBall:
     def reset_board_status(self):
         self.reward = 0
 
-
+    #------------------------------------------
     # 盤面生成(テストプレイ用)
     def set_test_game(self):
         self.othello = Othello()
@@ -58,10 +85,11 @@ class CatchBall:
         self.othello.test_player_play()
 
     def test_ai_play(self, action):
-        x = action % 8
-        y = action / 8
+        x = int(action % 8)
+        y = int(action / 8)
         return self.othello.test_ai_play(x, y)
 
+    #------------------------------------------
     # 盤面生成(学習用)
     def set_new_game(self):
         self.othello = Othello()
@@ -74,12 +102,9 @@ class CatchBall:
     def learning_play(self, action):
         self.reward = 0
 
-        x = action % 8
-        y = action / 8
+        x = int(action % 8)
+        y = int(action / 8)
         return self.othello.learning_play(x, y)
-
-
-
 
     # 盤上を見ずにランダムに置く
     def random_play(self):

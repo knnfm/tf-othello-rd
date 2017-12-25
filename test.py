@@ -36,6 +36,9 @@ if __name__ == "__main__":
             if hand_result == "ok":
                 break
             elif hand_result == "ng":
+                x = int(action % 8)
+                y = int(action / 8)
+                DebugLog.error(str(action) + ":" + str(x) + ":" + str(y))
                 pass
             elif hand_result == "pass":
                 break
